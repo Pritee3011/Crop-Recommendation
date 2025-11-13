@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Recommendation & Analysis - Farm-Forward{% endblock %}
+
+{% block content %}
+
+    <h1 class="hero-title text-center mb-4">💡 Precision Farming Tools</h1>
+    <p class="lead text-center mb-5">
+        From direct crop recommendations to in-depth price analysis, use our data-driven tools to maximize your farming strategy.
+    </p>
+    
+    <!-- Flask flash messages will appear here (usually handled in base.html) -->
+
+    <section id="crop-recommendation" class="mb-5 p-4 rounded shadow-lg" style="background-color: var(--color-medium-light);">
+        <h2 class="h3 mb-4" style="color: var(--color-dark-text);">🌱 1. Get Your Best Crop Recommendation</h2>
+        <p class="text-muted">
+            Model Accuracy: 99.55% — Input your field's parameters to find the single best crop for maximum yield.
+        </p>
+        
+        <form method="POST" action="/recommendation/predict"> 
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="N_SOIL" class="form-label">Nitrogen (N)</label>
+                    <input type="number" step="0.01" class="form-control" id="N_SOIL" name="N_SOIL" placeholder="e.g., 90.00" required
+                           value="{{ prediction_inputs.N_SOIL if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="P_SOIL" class="form-label">Phosphorous (P)</label>
+                    <input type="number" step="0.01" class="form-control" id="P_SOIL" name="P_SOIL" placeholder="e.g., 42.00" required
+                           value="{{ prediction_inputs.P_SOIL if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="K_SOIL" class="form-label">Potassium (K)</label>
+                    <input type="number" step="0.01" class="form-control" id="K_SOIL" name="K_SOIL" placeholder="e.g., 43.00" required
+                           value="{{ prediction_inputs.K_SOIL if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="ph" class="form-label">pH Level</label>
+                    <input type="number" step="0.01" class="form-control" id="ph" name="ph" placeholder="e.g., 6.50" required
+                           value="{{ prediction_inputs.ph if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="TEMPERATURE" class="form-label">Temperature (°C)</label>
+                    <input type="number" step="0.01" class="form-control" id="TEMPERATURE" name="TEMPERATURE" placeholder="e.g., 23.00" required
+                           value="{{ prediction_inputs.TEMPERATURE if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="HUMIDITY" class="form-label">Humidity (%)</label>
+                    <input type="number" step="0.01" class="form-control" id="HUMIDITY" name="HUMIDITY" placeholder="e.g., 82.00" required
+                           value="{{ prediction_inputs.HUMIDITY if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="RAINFALL" class="form-label">Rainfall (mm)</label>
+                    <input type="number" step="0.01" class="form-control" id="RAINFALL" name="RAINFALL" placeholder="e.g., 202.93" required
+                           value="{{ prediction_inputs.RAINFALL if prediction_inputs else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="CROP_PRICE" class="form-label">Crop Price (for model consistency)</label>
+                    <input type="number" step="0.01" class="form-control" id="CROP_PRICE" name="CROP_PRICE" placeholder="e.g., 2300" required
+                           value="{{ prediction_inputs.CROP_PRICE if prediction_inputs else '' }}">
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary-custom btn-lg">Get Recommended Crop</button>
+            </div>
+        </form>
+
+        {% if predicted_crop_name %}
+            <div id="prediction-result" class="mt-4 p-3 alert alert-success text-center">
+                <h4 class="alert-heading">✅ Final Prediction:</h4>
+                <p class="mb-0 fs-4 fw-bold">{{ predicted_crop_name }}</p>
+            </div>
+            <!-- Scroll to prediction result -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById('prediction-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            </script>
+        {% endif %}
+    </section>
+
+    <section id="anova-multiple" class="mb-5 p-4 rounded shadow-sm" style="background-color: var(--color-light-bg);">
+        <h2 class="h3 mb-4" style="color: var(--color-dark-text);">📊 2. Compare Multiple Crops (ANOVA)</h2>
+        <p class="text-muted">
+            Select three or more crops to determine if their average market prices are statistically different.
+        </p>
+
+        <div class="alert alert-info small" role="alert">
+            Available Crops: Rice, Maize, ChickPea, KidneyBeans, PigeonPeas, MothBeans, MungBean, Blackgram, Lentil, Pomegranate, Banana, Mango, Grapes, Watermelon, Muskmelon, Apple, Orange, Papaya, Coconut, Cotton, Jute, Coffee
+        </div>
+        
+        <form method="POST" action="/recommendation/anova">
+            <div class="mb-3">
+                <label for="anova_crops" class="form-label">Enter crop names separated by comma:</label>
+                <!-- Sticky Input for One-Way ANOVA -->
+                <input type="text" class="form-control" id="anova_crops" name="anova_crops" placeholder="e.g., KidneyBeans, PigeonPeas, MothBeans, MungBean" required
+                       value="{{ anova_inputs.anova_crops if anova_inputs else '' }}">
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary-custom">Run ANOVA Comparison</button>
+            </div>
+        </form>
+        
+        {% if anova_results %}
+            <div id="anova-result-summary" class="mt-4 p-3 alert alert-success">
+                <p class="mb-0 fw-bold">ANOVA Conclusion (P-value: {{ anova_results.p_value }}):</p>
+                <p class="mb-0">{{ anova_results.conclusion }}</p>
+                
+                {% if anova_plot %}
+                    <h5 class="mt-3">Price Distribution Plot:</h5>
+                    <img src="data:image/png;base64,{{ anova_plot }}" class="img-fluid border rounded" alt="ANOVA Box Plot">
+                {% endif %}
+            </div>
+            <!-- Scroll to ANOVA result -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById('anova-result-summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            </script>
+        {% endif %}
+    </section>
+
+    <section id="t-test-two-crop" class="mb-5 p-4 rounded shadow-sm" style="background-color: var(--color-medium-light);">
+        <h2 class="h3 mb-4" style="color: var(--color-dark-text);">⚖️ 3. Compare Two Crops (T-Test)</h2>
+        <p class="text-muted">
+            Check for a statistically significant difference in prices between any two specific crops.
+        </p>
+        
+        <form method="POST" action="/recommendation/ttest">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="crop1" class="form-label">First Crop Name:</label>
+                    <!-- Sticky Input for T-Test -->
+                    <input type="text" class="form-control" id="crop1" name="crop1" placeholder="e.g., Rice" required
+                           value="{{ ttest_inputs.crop1 if ttest_inputs else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="crop2" class="form-label">Second Crop Name:</label>
+                    <!-- Sticky Input for T-Test -->
+                    <input type="text" class="form-control" id="crop2" name="crop2" placeholder="e.g., Maize" required
+                           value="{{ ttest_inputs.crop2 if ttest_inputs else '' }}">
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary-custom">Run T-Test</button>
+            </div>
+        </form>
+        
+        {% if ttest_results %}
+            <div id="ttest-result-summary" class="mt-4 p-3 alert alert-info">
+                <p class="mb-0 fw-bold">T-Test Conclusion (P-value: {{ ttest_results.p_value }}):</p>
+                <p class="mb-0">{{ ttest_results.conclusion }}</p>
+                <ul class="mt-2 mb-0 small">
+                    <li>Mean Price for {{ ttest_results.crop1 }}: ₹{{ ttest_results.mean1 }}</li>
+                    <li>Mean Price for {{ ttest_results.crop2 }}: ₹{{ ttest_results.mean2 }}</li>
+                </ul>
+                
+                {% if ttest_plot %}
+                    <h5 class="mt-3">Price Comparison Plot:</h5>
+                    <img src="data:image/png;base64,{{ ttest_plot }}" class="img-fluid border rounded" alt="T-Test Box Plot">
+                {% endif %}
+            </div>
+            <!-- Scroll to T-Test result -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById('ttest-result-summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            </script>
+        {% endif %}
+    </section>
+
+    <section id="anova-crop-state" class="mb-5 p-4 rounded shadow-sm" style="background-color: var(--color-light-bg);">
+        <h2 class="h3 mb-4" style="color: var(--color-dark-text);">🌍 4. Crop Price Analysis by State (Two-Way ANOVA)</h2>
+        <p class="text-muted">
+            Analyze the impact of both Crop Type and State on market price, including their interaction effect.
+        </p>
+        <div class="alert alert-info small" role="alert">
+            <p>
+            Available Crops: Rice, Maize, ChickPea, KidneyBeans, PigeonPeas, MothBeans, MungBean, Blackgram, Lentil, Pomegranate, Banana, Mango, Grapes, Watermelon, Muskmelon, Apple, Orange, Papaya, Coconut, Cotton, Jute, Coffee
+            </p>
+            <p>
+            Available States: Andaman and Nicobar, Andhra Pradesh, Assam, Chattisgarh, Goa, Gujarat, Haryana, Himachal Pradesh, Jammu and Kashmir, Karnataka, Kerala, Madhya Pradesh, Maharashtra, Manipur, Meghalaya, Nagaland, Odisha, Pondicherry, Punjab, Rajasthan, Tamil Nadu, Telangana, Tripura, Uttar Pradesh, Uttrakhand, West Bengal
+            </p>
+        </div>
+    
+        <form method="POST" action="/recommendation/anova_state">
+            <div class="mb-3">
+                <label for="anova_state_crops" class="form-label">Enter crop names separated by comma:</label>
+                <!-- 🔥 STICKY INPUT FOR TWO-WAY ANOVA -->
+                <input type="text" class="form-control" id="anova_state_crops" name="anova_state_crops" placeholder="e.g., Rice, Wheat" required
+                       value="{{ anova_inputs.anova_state_crops if anova_inputs else '' }}">
+            </div>
+            <div class="mb-3">
+                <label for="anova_states" class="form-label">Enter states separated by comma:</label>
+                <!-- 🔥 STICKY INPUT FOR TWO-WAY ANOVA -->
+                <input type="text" class="form-control" id="anova_states" name="anova_states" placeholder="e.g., Maharashtra, Punjab" required
+                       value="{{ anova_inputs.anova_states if anova_inputs else '' }}">
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary-custom">Run Two-Way ANOVA</button>
+            </div>
+        </form>
+        
+        <!-- 🔥 RESULT DISPLAY BLOCK FOR TWO-WAY ANOVA -->
+        {% if twowayanova_results %}
+            <div id="twowayanova-result-summary" class="mt-4 p-3 alert alert-warning">
+                <p class="mb-0 fw-bold">Two-Way ANOVA Summary:</p>
+                <ul class="mb-0">
+                    <li>Effect of Crop (P-value: {{ twowayanova_results.p_crop }}): **{{ twowayanova_results.crop_conclusion }}**</li>
+                    <li>Effect of State (P-value: {{ twowayanova_results.p_state }}): **{{ twowayanova_results.state_conclusion }}**</li>
+                    <li>Interaction Effect (P-value: {{ twowayanova_results.p_interaction }}): **{{ twowayanova_results.interaction_conclusion }}**</li>
+                </ul>
+                
+                {% if twowayanova_plot %}
+                    <h5 class="mt-3">Interaction Plot:</h5>
+                    <img src="data:image/png;base64,{{ twowayanova_plot }}" class="img-fluid border rounded" alt="Two-Way ANOVA Interaction Plot">
+                {% endif %}
+            </div>
+
+            <!-- Scroll to Two-Way ANOVA result -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.getElementById('twowayanova-result-summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            </script>
+        {% endif %}
+    </section>
+
+{% endblock %}

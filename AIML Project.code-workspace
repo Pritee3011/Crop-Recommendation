@@ -1,10 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "templates"
+			"path": "."
 		},
 		{
-			"path": "static"
+			"path": "../static"
 		}
 	]
 }

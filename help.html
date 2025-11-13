@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Help & Guide | Farm-Forward{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5 mt-4">
+    <h2 class="fw-bold display-5 mb-3">How Can We Help You Grow?</h2>
+    <p class="fs-5" style="color: var(--color-dark-text); opacity: 0.85;">
+        Here is a guide to navigating the Farm-Forward dashboard and utilizing its tools.
+    </p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+
+    <!-- Card 1: Crop Information -->
+    <div class="col">
+        <div class="card h-100 border-2 shadow-sm" style="border-color: var(--color-medium-light); border-radius: 0.75rem;">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3" style="color: var(--color-medium-dark);">
+                    <i class="bi bi-info-circle-fill fs-3 me-2"></i>
+                    <h3 class="card-title fw-bold">Crop Info</h3>
+                </div>
+                <p class="card-text mb-3 text-secondary">
+                    This section provides detailed agronomic data for every crop in our database, 
+                    including optimal temperature, soil type, and rainfall requirements.
+                </p>
+                <h5 class="fw-semibold" style="color: var(--color-dark-text);">Key Feature: Search Bar</h5>
+                <p class="small text-muted mt-2">
+                    Use the Search bar at the top of the Crop Info page to quickly find any crop. 
+                    Type its name (e.g., <strong>Apple</strong> or <strong>PigeonPeas</strong>) and press Enter. 
+                    The page scrolls directly to the correct card and highlights it.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Recommendation Tool -->
+    <div class="col">
+        <div class="card h-100 border-2 shadow-sm" style="border-color: var(--color-medium-light); border-radius: 0.75rem;">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3" style="color: var(--color-medium-dark);">
+                    <i class="bi bi-lightbulb-fill fs-3 me-2"></i>
+                    <h3 class="card-title fw-bold">Recommendations</h3>
+                </div>
+                <p class="card-text mb-3 text-secondary">
+                    The Recommendations feature (coming soon!) will utilize your region's weather and soil data 
+                    to suggest the best crops for maximizing yield and profitability.
+                </p>
+                <h5 class="fw-semibold" style="color: var(--color-dark-text);">How it Works:</h5>
+                <ul class="small text-muted mt-2">
+                    <li>Input your current location details (e.g., pH level, temperature range).</li>
+                    <li>The system runs an analysis against crop requirements.</li>
+                    <li>It presents a ranked list of suggested crops.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Troubleshooting & Support -->
+    <div class="col">
+        <div class="card h-100 border-2 shadow-sm" style="border-color: var(--color-medium-light); border-radius: 0.75rem;">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3" style="color: var(--color-medium-dark);">
+                    <i class="bi bi-question-circle-fill fs-3 me-2"></i>
+                    <h3 class="card-title fw-bold">Get Support</h3>
+                </div>
+                <p class="card-text mb-3 text-secondary">
+                    If you encounter an issue or have a question about crop science or the app itself, 
+                    we're here to help!
+                </p>
+                <h5 class="fw-semibold" style="color: var(--color-dark-text);">Contact Us:</h5>
+                <p class="small text-muted mt-2">
+                    The easiest way to get support is to ask directly in the chat interface! 
+                    I can provide immediate assistance regarding the app's features, data, or technical issues.
+                </p>
+                <a href="https://wa.me/919209346747?text=Hello!%20I%20need%20help%20with%20the%20Farm-Forward%20app." class="btn btn-primary-custom w-100 mt-3">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Chat Now
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

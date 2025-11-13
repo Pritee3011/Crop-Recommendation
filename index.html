@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Farm-Forward | Agricultural Intelligence</title>
+    
+    <!-- Load Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /*
+         * Farm-Forward Custom Stylesheet
+         * Color Palette:
+         * #D6EFD8: Lightest Green (Background)
+         * #80AF81: Medium-Light Green (Hero Section)
+         * #508D4E: Medium-Dark Green (Navbar Background/Accent)
+         * #1A5319: Darkest Green (Text/Button Background)
+         */
+
+        :root {
+            --color-light-bg: #D6EFD8;
+            --color-medium-light: #80AF81;
+            --color-medium-dark: #508D4E;
+            --color-dark-text: #1A5319;
+            --color-white: #fdfdfd;
+        }
+
+        body {
+            background-color: var(--color-light-bg);
+            color: var(--color-dark-text);
+            /* Using a standard, clean system font stack */
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column;
+        }
+
+        /* --- Main Content Push --- */
+        main {
+            flex-grow: 1;
+        }
+
+        /* --- Typography Overrides --- */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--color-dark-text);
+            font-weight: 700;
+        }
+
+        /* --- Custom Navbar Styling --- */
+        .custom-navbar {
+            background-color: var(--color-medium-dark);
+            border-bottom: 2px solid var(--color-dark-text);
+        }
+
+        .custom-navbar .navbar-brand {
+            color: var(--color-white);
+            font-weight: 700;
+            transition: color 0.3s ease;
+        }
+
+        .custom-navbar .navbar-brand:hover {
+            color: var(--color-light-bg);
+        }
+
+        .custom-navbar .nav-link {
+            color: var(--color-light-bg);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .custom-navbar .nav-link:hover,
+        .custom-navbar .nav-link.active {
+            color: var(--color-white);
+            background-color: var(--color-dark-text);
+        }
+
+        /* Style the mobile navbar toggler icon */
+        .navbar-toggler {
+            border-color: var(--color-medium-light);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(214, 239, 216, 0.8)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* --- Hero Section Styling --- */
+        .hero-section {
+            /* 1. Add background image for visual appeal (crops, sky) */
+            background-image: url('https://images.unsplash.com/photo-1534066929841-a60210080644?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
+            background-size: cover;
+            background-position: center;
+            height: 50vh;
+            color: var(--color-dark-text);
+            border-bottom: 5px solid var(--color-medium-dark);
+            width: 100%;
+            /* Critical for the tractor animation and overlay */
+            overflow: hidden; 
+            position: relative;
+        }
+        
+        /* 2. Add semi-transparent overlay for text legibility */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Overlay color: Medium-light green with 60% opacity */
+            background-color: rgba(128, 175, 129, 0.65); 
+            z-index: 5; 
+        }
+
+        .hero-title, .hero-subtitle, .hero-button {
+            /* Initial state for fade-in effect */
+            opacity: 0;
+            animation: text-fade-in 1s ease-out forwards;
+            /* Delay the text until the tractor is mostly stopped */
+            animation-delay: 2.2s; 
+        }
+
+        /* Give the button a slightly longer delay */
+        .hero-button {
+            animation-delay: 2.5s;
+        }
+        
+        /* 3. Ensure Tractor and Text are above the overlay */
+        .tractor {
+            font-size: 5rem; 
+            position: absolute;
+            top: 50%;
+            /* Start position is far off-screen right */
+            left: 100%; 
+            transform: translateY(-50%) translateX(200px); 
+            z-index: 10; /* Above the overlay (5) */
+            
+            /* 2. Tractor Animation */
+            animation: tractor-entry 2s ease-out forwards;
+        }
+
+        /* Define the tractor movement animation */
+        @keyframes tractor-entry {
+            0% {
+                /* Start far right */
+                left: 100%;
+                transform: translateY(-50%) translateX(200px); 
+            }
+            100% {
+                /* Stops the tractor at 10% from the left edge (clear of the center text) */
+                left: 10%; 
+                transform: translateY(-50%);
+            }
+        }
+
+        /* Define the text fade-in animation */
+        @keyframes text-fade-in {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* --- Custom Button Styling --- */
+        .btn-primary-custom {
+            background-color: var(--color-dark-text);
+            border-color: var(--color-dark-text);
+            color: var(--color-white);
+            padding: 10px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #2a682f; 
+            border-color: #2a682f;
+            color: var(--color-white);
+            transform: translateY(-2px);
+        }
+        
+        /* --- Feature Card Styling (Remains same) --- */
+        .feature-card {
+            background-color: var(--color-white);
+            border: 1px solid var(--color-medium-light);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+             box-shadow: 0 8px 20px rgba(26, 83, 25, 0.15);
+        }
+
+        /* --- Footer Styling (Remains same) --- */
+        .custom-footer {
+            background-color: var(--color-medium-dark);
+            color: var(--color-light-bg);
+            padding: 1rem 0;
+            border-top: 2px solid var(--color-dark-text);
+        }
+
+        .custom-footer a {
+            color: var(--color-white);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .custom-footer a:hover {
+            color: var(--color-light-bg);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg custom-navbar sticky-top">
+        <div class="container-fluid container">
+            <a class="navbar-brand" href="#">Farm-Forward</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/crop-info">Crop Info</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/recommendation">Recommendation</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/help">Help</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid p-0">
+        
+        <!-- Hero Section with Animation -->
+        <section class="hero-section d-flex align-items-center justify-content-center text-center">
+            
+            <!-- The Tractor Element for Animation (z-index: 10) -->
+            <div class="tractor" aria-hidden="true">🚜</div> 
+
+            <!-- Text Container (z-index: 20) -->
+            <div class="container" style="z-index: 20; position: relative;">
+                
+                <!-- The Text and Button elements now fade in after the tractor animation -->
+                <h1 class="hero-title">Smarter Farming Starts Here</h1>
+                <p class="hero-subtitle mb-4">Data-driven crop recommendations for a sustainable future.</p>
+                <a href="/recommendation" class="btn btn-primary-custom btn-lg hero-button">Start Your Analysis</a>
+            </div>
+        </section>
+        
+        <!-- Main Content Area (Features) -->
+        <div class="container mt-5 mb-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold mb-3">Our Core Features</h2>
+                <p class="lead text-muted" style="color: var(--color-dark-text) !important; opacity: 0.8;">
+                    Leverage precision agriculture intelligence to maximize your yield and efficiency.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                
+                <!-- Feature Card 1: Crop Info -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card h-100">
+                        <h3 class="h4 fw-bold mb-3" style="color: var(--color-medium-dark);">
+                            Crop Data Library
+                        </h3>
+                        <p class="text-muted">
+                            Access comprehensive details on all crops, including optimal temperature ranges, soil pH preferences, and water requirements. Use the search feature for instant data lookup.
+                        </p>
+                        <a href="/crop-info" class="btn btn-outline-success mt-3" style="color: var(--color-dark-text); border-color: var(--color-dark-text);">
+                            Explore Crops
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Feature Card 2: Recommendations -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card h-100">
+                        <h3 class="h4 fw-bold mb-3" style="color: var(--color-medium-dark);">
+                            Smart Crop Recommendations
+                        </h3>
+                        <p class="text-muted">
+                            Receive Personalized suggestions based on your local environmental inputs. Find the most profitable and sustainable crops for your specific farm conditions.
+                        </p>
+                        <a href="/recommendation" class="btn btn-primary-custom mt-3">
+                            Get Recommendations
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Feature Card 3: Support -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="feature-card h-100">
+                        <h3 class="h4 fw-bold mb-3" style="color: var(--color-medium-dark);">
+                            User Support & Guides
+                        </h3>
+                        <p class="text-muted">
+                            Need guidance on how to use the dashboard or interpret your results? Our detailed help section and support resources are always available.
+                        </p>
+                        <a href="/help" class="btn btn-outline-success mt-3" style="color: var(--color-dark-text); border-color: var(--color-dark-text);">
+                            Visit Help Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5 text-center">
+                <div class="col-12">
+                    <h2 class="h3 fw-bold mb-3">Ready to transform your farming practice?</h2>
+                    <p class="lead text-muted" style="color: var(--color-dark-text) !important; opacity: 0.8;">
+                        Join thousands of farmers making data-driven decisions today.
+                    </p>
+                    <a href="/recommendation" class="btn btn-primary-custom btn-lg mt-3">
+                        Join the Movement
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        <!-- End Main Content Area -->
+    </main>
+    
+    <!-- Footer -->
+    <footer class="custom-footer mt-auto">
+        <div class="container text-center">
+            <div class="mb-2">
+                <a href="https://www.linkedin.com/in/pritee-pardeshi-677849290/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <span style="color: var(--color-light-bg);"> | </span>
+                <a href="https://www.instagram.com/farm.forward?igsh=MTVldjVwMG85OXZjOQ==" target="_blank" rel="noopener noreferrer">Instagram</a>
+                <span style="color: var(--color-light-bg);"> | </span>
+                <a href="https://wa.me/919209346747?text=Hello!%20I%20need%20help%20with%20the%20Farm-Forward%20app." target="_blank" rel="noopener noreferrer">Contact</a>
+                <span style="color: var(--color-light-bg);"> | </span>
+                <a href="mailto:pritee.pardeshi@cumminscollege.in?subject=Farm-Forward%20Support%20Request&body=Hello!%20I%20need%20help%20with%20the%20app." target="_blank" rel="noopener noreferrer">Mail-id</a>
+            </div>
+            <p class="mb-0">
+                &copy; 2025 Farm-Forward. All rights reserved.
+            </p>
+        </div>
+    </footer>
+    
+    <!-- Load Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
+</html>

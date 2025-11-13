@@ -1,0 +1,455 @@
+
+{% extends "base.html" %}
+{% block title %}Crop Info | Farm-Forward{% endblock %}
+
+{% block content %}
+<!-- Search Bar Area -->
+            <div class="flex justify-center items-center flex-col pt-3 pb-2">
+                 <!-- Feedback Message Box -->
+                <p id="searchMessageBox" class="text-sm font-medium transition-opacity duration-300 opacity-0 mb-2"></p>
+
+                <div class="flex w-full max-w-lg shadow-xl rounded-full overflow-hidden">
+                    <input 
+                        type="text" 
+                        id="cropSearchInput"
+                        placeholder="Search for a crop (e.g., Apple, Rice, Maize)..."
+                        class="flex-grow p-3 border-none focus:ring-2"
+                        style="outline: none; background-color: var(--color-light-bg); color: var(--color-dark-text); --tw-ring-color: var(--color-medium-dark);"
+                    >
+                    <button 
+                        onclick="searchCrop()"
+                        class="btn-primary-custom flex items-center justify-center px-6 py-3"
+                    >
+                        <i data-lucide="search" class="w-5 h-5 mr-2 text-white"></i>
+                        Search
+                    </button>
+                </div>
+            </div>
+
+    <style>
+        /*
+         * Farm-Forward Custom Stylesheet
+         * Color Palette:
+         * #D6EFD8: Lightest Green (Background)
+         * #80AF81: Medium-Light Green (Hero Section)
+         * #508D4E: Medium-Dark Green (Navbar Background/Accent)
+         * #1A5319: Darkest Green (Text/Button Background)
+         */
+
+        :root {
+            --color-light-bg: #D6EFD8;
+            --color-medium-light: #80AF81;
+            --color-medium-dark: #508D4E;
+            --color-dark-text: #1A5319;
+            --color-white: #fdfdfd;
+        }
+
+        body {
+            background-color: var(--color-light-bg);
+            color: var(--color-dark-text);
+            /* Using a standard, clean system font stack */
+            font-family: 'Inter', sans-serif; /* Adjusted to Inter as per standard guidance */
+            min-height: 100vh; /* Ensure body takes full height for sticky footer */
+            display: flex; /* Flex container for sticky footer */
+            flex-direction: column;
+        }
+
+        /* --- Main Content Push --- */
+        main {
+            flex-grow: 1; /* Allows main content to fill remaining space and push footer down */
+        }
+
+        /* --- Typography Overrides --- */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--color-dark-text);
+            font-weight: 700;
+        }
+
+        /* --- Custom Button Styling (Used for Search Button) --- */
+        .btn-primary-custom {
+            /* Base style from your definition */
+            background-color: var(--color-dark-text);
+            border-color: var(--color-dark-text);
+            color: var(--color-white);
+            padding: 10px 30px;
+            font-weight: 600;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .btn-primary-custom:hover {
+            /* Using your specified slightly lighter green for hover */
+            background-color: #2a682f; 
+            border-color: #2a682f;
+            color: var(--color-white);
+        }
+
+    
+        
+        /* --- Card and Highlight Styles --- */
+        .crop-card {
+            background-color: var(--color-white);
+            border: 2px solid var(--color-medium-light); /* softer initial border */
+            transition: transform 0.3s, box-shadow 0.3s, border 0.3s;
+        }
+        .crop-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(26, 83, 25, 0.1), 0 4px 6px -2px rgba(26, 83, 25, 0.05); /* Darker shadow */
+        }
+        /* Style for when a card is actively focused/scrolled to */
+        .crop-card.highlight {
+            border: 4px solid var(--color-dark-text); /* Strong dark border */
+            box-shadow: 0 0 0 6px rgba(26, 83, 25, 0.3); /* Dark glow */
+        }
+
+        /* Category pill base style */
+        .category-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 600; /* font-semibold */
+            margin-right: 0.5rem;
+        }
+
+        /* Category specific colors (adapted to the new palette when possible or kept distinct) */
+        .cereal { background-color: #ffeccf; color: #9c6800; } /* Light Orange/Brown */
+        .pulse { background-color: #e0f2e1; color: var(--color-dark-text); } /* Light green, using dark text for contrast */
+        .fruit { background-color: #ffd6d6; color: #8b0000; } /* Light Red/Maroon */
+        .cash-crop { background-color: #cce7c5; color: var(--color-medium-dark); } /* Medium green contrast */
+        .beverage { background-color: #d8cce7; color: #4b0082; } /* Light Purple/Indigo */
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            // Add event listener for Enter key on search input
+            document.getElementById('cropSearchInput').addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    searchCrop();
+                }
+            });
+        });
+
+        // Function to remove all highlights
+        function clearHighlights() {
+            document.querySelectorAll('.crop-card').forEach(card => {
+                card.classList.remove('highlight');
+            });
+        }
+
+        // Function to handle the crop search and scroll
+        function searchCrop() {
+            clearHighlights();
+            const input = document.getElementById('cropSearchInput').value.trim();
+            const messageBox = document.getElementById('searchMessageBox');
+            
+            // Standardize the input for ID matching (e.g., "Kidney Beans" -> "kidneybeans")
+            const normalizedInput = input.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            // Use the normalized input as the target ID
+            const targetElement = document.getElementById(normalizedInput);
+
+            // Clear previous message
+            messageBox.textContent = '';
+            messageBox.classList.remove('text-red-600', 'text-green-600', 'opacity-100');
+            messageBox.classList.add('opacity-0');
+
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetElement.classList.add('highlight');
+
+                // Display success message using dark text color for visibility
+                messageBox.classList.remove('text-red-600');
+                messageBox.style.color = 'var(--color-dark-text)'; 
+                messageBox.classList.add('opacity-100');
+                messageBox.textContent = `Found and scrolled to ${targetElement.querySelector('h3').textContent}!`;
+            } else {
+                // Display error message using a standard red for clarity on error
+                messageBox.style.color = 'red'; 
+                messageBox.classList.remove('text-green-600');
+                messageBox.classList.add('opacity-100');
+                messageBox.textContent = `Crop "${input}" not found. Try one from the list.`;
+            }
+            
+            // Hide the message after a few seconds
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-100');
+                messageBox.classList.add('opacity-0');
+            }, 5000);
+        }
+    </script>
+</head>
+<body class="min-h-screen">
+
+                   
+
+    
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="text-center mb-12" style="color: var(--color-dark-text);">
+            <h2 class="text-4xl font-extrabold">Available Crop Guide</h2>
+            <p class="mt-4 text-xl" style="color: var(--color-dark-text);">Detailed information on optimal growing conditions and uses for each crop in our database.</p>
+        </div>
+
+        <!-- Crop Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+            <!-- --- Cereal Crops --- -->
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="rice">
+                <span class="category-pill cereal"><i data-lucide="grain" class="w-4 h-4 mr-1"></i>Cereal</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Rice</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">The staple food crop of a large part of the world.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Hot and humid (22°C to 32°C).</li>
+                    <li><strong style="color: var(--color-dark-text);">Rainfall:</strong> High, above 100cm/year.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Alluvial, clayey soil that can retain water.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="maize">
+                <span class="category-pill cereal"><i data-lucide="grain" class="w-4 h-4 mr-1"></i>Cereal</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Maize</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Used as both food (corn) and fodder (animal feed).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Requires moderate temperature (21°C to 27°C).</li>
+                    <li><strong style="color: var(--color-dark-text);">Rainfall:</strong> 50 to 100 cm.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Old alluvial soil is preferred.</li>
+                </ul>
+            </div>
+
+            <!-- --- Pulse Crops --- -->
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="chickpea">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">ChickPea</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">High protein source, crucial for vegetarian diets (Garbanzo Bean).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Cool and dry climate for growth.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Loamy to clayey soils, well-drained.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="kidneybeans">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">KidneyBeans</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Popular legume, rich in minerals and fiber.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Needs moderate temperatures (18°C to 24°C).</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Well-drained loamy soils.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="pigeonpeas">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">PigeonPeas</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Versatile crop, tolerates drought well (Toor Dal).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical/subtropical, warm, and humid.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Wide range, but deep, well-drained loams are best.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="mothbeans">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">MothBeans</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Hardy crop, primarily grown in arid and semi-arid regions.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Requires hot and dry conditions.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy or loamy soils, highly drought-tolerant.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="mungbean">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">MungBean</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Fast-growing pulse, often used for sprouts (Green Gram).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Warm weather (25°C to 35°C).</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy loams to heavy clays, sensitive to waterlogging.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="blackgram">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Blackgram</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Known for its use in Dosa and Idli batter (Urad Dal).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Warm and sunny climate.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Loamy or clayey loams, good drainage is vital.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="lentil">
+                <span class="category-pill pulse"><i data-lucide="bean" class="w-4 h-4 mr-1"></i>Pulse</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Lentil</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Cool-season crop, highly nutritious (Masoor Dal).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Cool and dry growing season.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy loam to silty clay loam, pH 6.0-8.0.</li>
+                </ul>
+            </div>
+
+            <!-- --- Fruit Crops --- -->
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="pomegranate">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Pomegranate</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Drought-tolerant fruit known for its medicinal properties.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Semi-arid conditions, hot/dry summers.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Wide adaptability, but deep, well-drained loamy soils are best.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="banana">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Banana</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Tropical fruit, requires high humidity and warmth.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical/subtropical, 20°C to 30°C.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Rich, well-drained loamy soil, susceptible to waterlogging.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="mango">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Mango</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">The "King of Fruits," grown widely in tropical areas.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical, needs high temperature and dry period for flowering.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Deep, well-drained loamy soils are ideal.</li>
+                </ul>
+            </div>
+            
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="grapes">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Grapes</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Used for direct consumption, wine, and raisins.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Requires hot/dry summer and cold winter (temperate).</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Deep, friable, well-drained loamy soil.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="watermelon">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Watermelon</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Summer fruit requiring intense heat for sugar development.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Hot, dry weather, 25°C to 35°C.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy to loamy, rich in organic matter.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="muskmelon">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Muskmelon</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Warm-season crop, known for its sweet, musky flavor.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Hot and sunny, sensitive to frost.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy loams, good drainage is necessary.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="apple">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Apple</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Temperate fruit requiring a distinct chilling period.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Temperate zone, needs cold winters (chilling hours).</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Deep, well-drained loam, pH 5.5-6.5.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="orange">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Orange</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Citrus fruit that thrives in subtropical conditions.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Subtropical, warm and humid or cool and dry.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Wide variety, but deep, well-drained sandy or clay loams.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="papaya">
+                <span class="category-pill fruit"><i data-lucide="apple" class="w-4 h-4 mr-1"></i>Fruit</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Papaya</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Fast-growing fruit tree, sensitive to cold and frost.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Warm, frost-free climate, 20°C to 30°C.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Light, well-drained sandy loam.</li>
+                </ul>
+            </div>
+
+            <!-- --- Cash/Fiber/Nut Crops --- -->
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="coconut">
+                <span class="category-pill cash-crop"><i data-lucide="nut" class="w-4 h-4 mr-1"></i>Nut/Oil</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Coconut</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Coastal tree, used for water, oil, and fiber (coir).</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical, humid, close to the sea is optimal.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Sandy, laterite, or alluvial, needs good drainage.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="cotton">
+                <span class="category-pill cash-crop"><i data-lucide="scissors" class="w-4 h-4 mr-1"></i>Fiber</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Cotton</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Source of natural fiber, needs intense sun and black soil.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical/Subtropical, 21°C to 30°C, 210 frost-free days.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Black soil (regur) or deep alluvial soil.</li>
+                </ul>
+            </div>
+
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="jute">
+                <span class="category-pill cash-crop"><i data-lucide="scissors" class="w-4 h-4 mr-1"></i>Fiber</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Jute</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">The "Golden Fibre," used for sacks, mats, and carpets.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Hot and humid, high rainfall (120-150 cm).</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Well-drained alluvial soil.</li>
+                </ul>
+            </div>
+
+            <!-- --- Beverage Crops --- -->
+            <div class="crop-card p-6 rounded-xl shadow-lg border-2" id="coffee">
+                <span class="category-pill beverage"><i data-lucide="coffee" class="w-4 h-4 mr-1"></i>Beverage</span>
+                <h3 class="text-2xl font-bold mt-3 mb-2" style="color: var(--color-dark-text);">Coffee</h3>
+                <p class="text-sm mb-4" style="color: var(--color-dark-text); opacity: 0.8;">Grown on hill slopes, highly sensitive to frost.</p>
+                <h4 class="font-semibold" style="color: var(--color-dark-text);">Conditions:</h4>
+                <ul class="text-sm list-disc pl-5" style="color: var(--color-medium-dark);">
+                    <li><strong style="color: var(--color-dark-text);">Climate:</strong> Tropical, high altitude, 15°C to 28°C.</li>
+                    <li><strong style="color: var(--color-dark-text);">Soil:</strong> Well-drained, deep, friable loams; often grown on hill slopes.</li>
+                </ul>
+            </div>
+            
+        </div>
+        <!-- End Crop Cards Grid -->
+    </main>
+
+    
+</body>
+
+{% endblock %}
